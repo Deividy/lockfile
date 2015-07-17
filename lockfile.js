@@ -56,16 +56,24 @@ if (/^v0\.[0-8]\./.test(process.version)) {
 
 exports.unlock = function (path, cb) {
   debug('unlock', path)
-  // best-effort.  unlocking an already-unlocked lock is a noop
-  delete locks[path]
-  fs.unlink(path, function (unlinkEr) { cb() })
+
+  if (locks[path]) {
+    delete locks[path]
+    fs.unlink(path, function (unlinkEr) { cb() })
+  } else {
+    cb("No lock found for: " + path)
+  }
 }
 
 exports.unlockSync = function (path) {
   debug('unlockSync', path)
-  // best-effort.  unlocking an already-unlocked lock is a noop
-  try { fs.unlinkSync(path) } catch (er) {}
-  delete locks[path]
+
+  if (locks[path]) {
+    delete locks[path]
+    fs.unlinkSync(path)
+  } else {
+    throw new Error("No lock found for: " + path)
+  }
 }
 
 
